@@ -1,7 +1,12 @@
 [package]
 name = "mvre"
-version = "0.1.0"
+description = "move using regex"
+authors = ["Arbaaz Shafiq <arbaazshafiq@gmail.com>"]
+categories = ["command-line-utilities"]
+readme = "README.md"
+repository = "https://github.com/s1as3r/mvre"
 edition = "2024"
+version = "0.1.0"
 
 [dependencies]
 clap = { version = "4.6", features = ["derive"] }
