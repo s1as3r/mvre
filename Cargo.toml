@@ -10,7 +10,9 @@ version = "0.1.0"
 
 [dependencies]
 clap = { version = "4.6", features = ["derive"] }
+log = "0.4.30"
 regex = "1.12"
+simple_logger = { version = "5.2.0", features = ["stderr"] }
 
 [dev-dependencies]
 anyhow = "1.0"

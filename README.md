@@ -24,7 +24,8 @@ Arguments:
 Options:
   -c, --case-insensitive  ignore case
   -i, --interactive       run interactively
-  -v, --verbose           print each move
+  -d, --debug             enable debug output
+  -q, --quiet             suppress info output
       --dry-run           dry run - dont make any moves
   -H, --hidden            include hidden files and directories
   -f, --force             force overwrite if destination already exists

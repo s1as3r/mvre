@@ -299,24 +299,6 @@ fn test_dirs_only() -> Result<()> {
 }
 
 #[test]
-fn test_verbose() -> Result<()> {
-    let dir = tempdir()?;
-    fs::write(dir.path().join("file_1.txt"), "source")?;
-
-    let mut cmd = Command::cargo_bin("mvre")?;
-    cmd.current_dir(dir.path())
-        .arg("--verbose")
-        .arg(r"file_(\d+)\.txt")
-        .arg("target_$1.txt")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("./file_1.txt -> ./target_1.txt"));
-
-    assert!(dir.path().join("target_1.txt").exists());
-    Ok(())
-}
-
-#[test]
 fn test_interactive_rename_yes() -> Result<()> {
     let dir = tempdir()?;
     fs::write(dir.path().join("file_1.txt"), "source")?;
