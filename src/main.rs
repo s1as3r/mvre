@@ -65,7 +65,7 @@ fn main() {
         }
     };
 
-    let mut all_files = Vec::new();
+    let mut all_paths = Vec::new();
     for path_str in &args.paths {
         let base_dir = Path::new(path_str);
         if !base_dir.exists() {
@@ -79,7 +79,7 @@ fn main() {
         match get_files_recursive(base_dir, args.hidden) {
             Ok(f) => {
                 for path in f {
-                    all_files.push((base_dir.to_path_buf(), path));
+                    all_paths.push((base_dir, path));
                 }
             }
             Err(e) => {
@@ -90,7 +90,7 @@ fn main() {
     }
 
     let mut renames = Vec::new();
-    for (base_dir, path) in &all_files {
+    for (base_dir, path) in &all_paths {
         if let Some(new_path) = compute_new_path(base_dir, path, &re, &args) {
             renames.push((path.clone(), new_path));
         }
