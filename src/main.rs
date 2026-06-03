@@ -38,6 +38,11 @@ fn main() {
             continue;
         }
 
+        if !base_dir.is_dir() {
+            log::warn!("Search path {} is not a directory. Skipping.", path_str);
+            continue;
+        }
+
         match fs::get_files_recursive(base_dir, args.hidden) {
             Ok(f) => {
                 for path in f {

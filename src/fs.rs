@@ -74,7 +74,7 @@ pub(crate) fn do_rename(
 pub(crate) fn get_files_recursive(dir: &Path, no_ignore_hidden: bool) -> io::Result<Vec<PathBuf>> {
     let mut files = Vec::new();
 
-    assert!(dir.is_dir(), "must only be called with directories.");
+    debug_assert!(dir.is_dir(), "must only be called with directories.");
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
