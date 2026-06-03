@@ -2,7 +2,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use crate::util::prompt_user;
+use crate::util::{is_hidden, prompt_user};
 
 pub(crate) fn compute_new_path(
     base_dir: &Path,
@@ -71,7 +71,7 @@ pub(crate) fn do_rename(
     fs::rename(path, new_path)
 }
 
-pub(crate) fn get_files_recursive(dir: &Path, no_ignore_hidden: bool) -> io::Result<Vec<PathBuf>> {
+pub(crate) fn get_files_recursive(dir: &Path, include_hidden: bool) -> io::Result<Vec<PathBuf>> {
     let mut files = Vec::new();
 
     debug_assert!(dir.is_dir(), "must only be called with directories.");
@@ -79,15 +79,14 @@ pub(crate) fn get_files_recursive(dir: &Path, no_ignore_hidden: bool) -> io::Res
         let entry = entry?;
         let path = entry.path();
 
-        let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        if !no_ignore_hidden && file_name.starts_with('.') {
+        if !include_hidden && is_hidden(&path) {
             continue;
         }
 
         files.push(path.clone());
 
         if path.is_dir() {
-            files.extend(get_files_recursive(&path, no_ignore_hidden)?);
+            files.extend(get_files_recursive(&path, include_hidden)?);
         }
     }
     Ok(files)
