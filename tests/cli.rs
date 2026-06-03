@@ -172,6 +172,27 @@ fn test_dry_run() -> Result<()> {
 }
 
 #[test]
+fn test_dry_run_warns_of_overwrite() -> Result<()> {
+    let dir = tempdir()?;
+    fs::write(dir.path().join("file_1.txt"), "source")?;
+    fs::write(dir.path().join("target_1.txt"), "dest")?;
+
+    let mut cmd = Command::cargo_bin("mvre")?;
+    cmd.current_dir(dir.path())
+        .arg("--dry-run")
+        .arg(r"file_(\d+)\.txt")
+        .arg("target_$1.txt")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("./file_1.txt -> ./target_1.txt"))
+        .stderr(predicate::str::contains("already exists"));
+
+    assert!(dir.path().join("file_1.txt").exists());
+    assert!(dir.path().join("target_1.txt").exists());
+    Ok(())
+}
+
+#[test]
 fn test_create_parent_directories() -> Result<()> {
     let dir = tempdir()?;
     fs::write(dir.path().join("file_1.txt"), "source")?;

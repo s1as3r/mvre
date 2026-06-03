@@ -40,10 +40,6 @@ pub(crate) fn do_rename(
     force: bool,
     dry_run: bool,
 ) -> io::Result<()> {
-    if dry_run {
-        return Ok(());
-    }
-
     let display_dest = new_path.display();
     if new_path.exists() {
         if interactive {
@@ -57,6 +53,10 @@ pub(crate) fn do_rename(
             return Ok(());
         }
     } else if interactive && !prompt_user("Perform this rename?") {
+        return Ok(());
+    }
+
+    if dry_run {
         return Ok(());
     }
 
