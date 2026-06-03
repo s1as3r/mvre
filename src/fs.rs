@@ -2,6 +2,9 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
+use regex::Regex;
+use walkdir::WalkDir;
+
 use crate::util::{is_hidden, prompt_user};
 
 pub(crate) fn compute_new_path(
@@ -9,18 +12,11 @@ pub(crate) fn compute_new_path(
     path: &Path,
     src_re: &regex::Regex,
     dest_re_str: &str,
-    files_only: bool,
-    dirs_only: bool,
 ) -> Option<PathBuf> {
-    // compute path string to match against by stripping the base directory.
-    // this ensures the regex only applies to the path relative to the search directory.
     let match_path = path.strip_prefix(base_dir).unwrap_or(path);
     let path_str = match_path.to_string_lossy();
 
-    if (path.is_dir() && files_only) || (path.is_file() && dirs_only) {
-        return None;
-    }
-
+    // redundant
     if !src_re.is_match(&path_str) {
         return None;
     }
@@ -71,23 +67,39 @@ pub(crate) fn do_rename(
     fs::rename(path, new_path)
 }
 
-pub(crate) fn get_files_recursive(dir: &Path, include_hidden: bool) -> io::Result<Vec<PathBuf>> {
-    let mut files = Vec::new();
-
+pub(crate) fn get_matching_files(
+    dir: &Path,
+    src_re: &Regex,
+    include_hidden: bool,
+    files_only: bool,
+    dirs_only: bool,
+) -> Result<Vec<PathBuf>, walkdir::Error> {
     debug_assert!(dir.is_dir(), "must only be called with directories.");
-    for entry in fs::read_dir(dir)? {
-        let entry = entry?;
-        let path = entry.path();
+    WalkDir::new(dir)
+        .follow_links(false)
+        .into_iter()
+        .filter_entry(|p| include_hidden || !is_hidden(p.path()))
+        .filter_map(|entry| {
+            let entry = match entry {
+                Ok(e) => e,
+                Err(e) => return Some(Err(e)),
+            };
+            let path = entry.path();
 
-        if !include_hidden && is_hidden(&path) {
-            continue;
-        }
+            if (path.is_dir() && files_only) || (path.is_file() && dirs_only) {
+                return None;
+            }
 
-        files.push(path.clone());
+            // compute path string to match against by stripping the base directory.
+            // this ensures the regex only applies to the path relative to the search directory.
+            let match_path = path.strip_prefix(dir).unwrap_or(path);
+            let path_str = match_path.to_string_lossy();
 
-        if path.is_dir() {
-            files.extend(get_files_recursive(&path, include_hidden)?);
-        }
-    }
-    Ok(files)
+            if !src_re.is_match(&path_str) {
+                return None;
+            }
+
+            Some(Ok(path.to_path_buf()))
+        })
+        .collect()
 }

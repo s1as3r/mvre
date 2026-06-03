@@ -43,7 +43,7 @@ fn main() {
             continue;
         }
 
-        match fs::get_files_recursive(base_dir, args.hidden) {
+        match fs::get_matching_files(base_dir, &re, args.hidden, args.files_only, args.dirs_only) {
             Ok(f) => {
                 for path in f {
                     all_paths.push((base_dir, path));
@@ -58,14 +58,7 @@ fn main() {
 
     let mut renames = Vec::new();
     for (base_dir, path) in &all_paths {
-        if let Some(new_path) = fs::compute_new_path(
-            base_dir,
-            path,
-            &re,
-            &args.dest,
-            args.files_only,
-            args.dirs_only,
-        ) {
+        if let Some(new_path) = fs::compute_new_path(base_dir, path, &re, &args.dest) {
             renames.push((path.clone(), new_path));
         }
     }
