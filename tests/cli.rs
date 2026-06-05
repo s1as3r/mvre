@@ -2,6 +2,7 @@ use anyhow::Result;
 use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;
+use std::path::MAIN_SEPARATOR;
 use tempfile::tempdir;
 
 #[test]
@@ -23,6 +24,7 @@ fn test_basic_rename() -> Result<()> {
     Ok(())
 }
 
+#[cfg(unix)]
 #[test]
 fn test_ignore_hidden_files_by_default() -> Result<()> {
     let dir = tempdir()?;
@@ -42,6 +44,7 @@ fn test_ignore_hidden_files_by_default() -> Result<()> {
     Ok(())
 }
 
+#[cfg(unix)]
 #[test]
 fn test_include_hidden_files() -> Result<()> {
     let dir = tempdir()?;
@@ -158,13 +161,14 @@ fn test_dry_run() -> Result<()> {
     fs::write(dir.path().join("file_1.txt"), "source")?;
 
     let mut cmd = Command::cargo_bin("mvre")?;
+    let rename_str = format!(".{MAIN_SEPARATOR}file_1.txt -> .{MAIN_SEPARATOR}target_1.txt");
     cmd.current_dir(dir.path())
         .arg("--dry-run")
         .arg(r"file_(\d+)\.txt")
         .arg("target_$1.txt")
         .assert()
         .success()
-        .stdout(predicate::str::contains("./file_1.txt -> ./target_1.txt"));
+        .stdout(predicate::str::contains(rename_str));
 
     assert!(dir.path().join("file_1.txt").exists());
     assert!(!dir.path().join("target_1.txt").exists());
@@ -178,13 +182,14 @@ fn test_dry_run_warns_of_overwrite() -> Result<()> {
     fs::write(dir.path().join("target_1.txt"), "dest")?;
 
     let mut cmd = Command::cargo_bin("mvre")?;
+    let rename_str = format!(".{MAIN_SEPARATOR}file_1.txt -> .{MAIN_SEPARATOR}target_1.txt");
     cmd.current_dir(dir.path())
         .arg("--dry-run")
         .arg(r"file_(\d+)\.txt")
         .arg("target_$1.txt")
         .assert()
         .success()
-        .stdout(predicate::str::contains("./file_1.txt -> ./target_1.txt"))
+        .stdout(predicate::str::contains(rename_str))
         .stderr(predicate::str::contains("already exists"));
 
     assert!(dir.path().join("file_1.txt").exists());
