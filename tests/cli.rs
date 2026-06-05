@@ -13,8 +13,10 @@ fn test_basic_rename() -> Result<()> {
     fs::write(movies_dir.join("23nametogether_2.mp4"), "content")?;
 
     let mut cmd = Command::cargo_bin("mvre")?;
+    // we need to escape the path separator on windows when we pass it as part of the src regex
+    let path_separator = if MAIN_SEPARATOR == '\\' { r"\\" } else { r"/" };
     cmd.current_dir(dir.path())
-        .arg("(.*?)/.*?_(\\d+)\\.(.*?)")
+        .arg(format!(r"(.*?){path_separator}.*?_(\d+)\.(.*)"))
         .arg("${1}_${2}.${3}")
         .assert()
         .success();
